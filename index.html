@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<head>
+   <meta charset="utf-8">
+   <script src="https://d3js.org/d3.v5.min.js"></script>
+<style>
+* {box-sizing: border-box}
+body {font-family: Verdana, sans-serif; margin-left:auto; margin-right:auto; display:block;text-align: center;}
+.mySlides {display: none}
+img {vertical-align: middle;}
+
+/* Caption text */
+.text {
+  color: #f2f2f2;
+  font-size: 15px;
+  padding: 8px 12px;
+  position: absolute;
+  bottom: 8px;
+  width: 100%;
+  text-align: center;
+}
+
+
+.myDiv{
+  background-color: #4CAF50; border: none;  color: white;padding: 15px 32px;text-align: center;text-decoration: none;display: inline-block;font-size: 16px;
+}
+/* The dots/bullets/indicators */
+.dot {
+  cursor: pointer;
+  height: 15px;
+  width: 15px;
+  margin: 0 2px;
+  background-color: #bbb;
+  border-radius: 50%;
+  display: inline-block;
+  transition: background-color 0.6s ease;
+}
+
+.active, .dot:hover {
+  background-color: #717171;
+}
+
+/* Fading animation */
+.fade {
+  -webkit-animation-name: fade;
+  -webkit-animation-duration: 1.5s;
+  animation-name: fade;
+  animation-duration: 1.5s;
+}
+
+@-webkit-keyframes fade {
+  from {opacity: .4} 
+  to {opacity: 1}
+}
+
+@keyframes fade {
+  from {opacity: .4} 
+  to {opacity: 1}
+}
+
+div.tooltip { 
+    position: absolute;     
+    text-align: center;     
+    width: 600px;          
+    height: 280px;         
+    padding: 2px;       
+    font: 12px sans-serif;    
+    background: lightsteelblue; 
+    border: 0px;    
+    border-radius: 8px;     
+    pointer-events: none;     
+}
+
+</style>
+</head>
+
+<body>
+
+<br>
+
+<div style="text-align:center">
+  <span class="myDiv" onclick="currentSlide(1)">Begin</span>
+  <span class="dot" onclick="currentSlide(1)"></span> 
+  <span class="dot" onclick="currentSlide(2)"></span> 
+  <span class="dot" onclick="currentSlide(3)"></span> 
+  <span class="dot" onclick="currentSlide(4)"></span>
+  <span class="dot" onclick="currentSlide(5)"></span>
+  <span class="dot" onclick="currentSlide(6)"></span>
+  <span class="dot" onclick="currentSlide(7)"></span>
+  <span class="dot" onclick="currentSlide(8)"></span>
+  <span class="dot" onclick="currentSlide(9)"></span>
+  <span class="dot" onclick="currentSlide(10)"></span>
+  <span class="dot" onclick="currentSlide(11)"></span>
+  <span class="dot" onclick="currentSlide(12)"></span>
+
+<script>
+
+const height = 600;
+const yearBegin     = 1970;
+const numCountries = 20;
+
+const tickTime  = 1100; 
+const delayTime = 2200; 
+
+const yearStop       = 2018;
+
+var year = yearBegin;
+var timerTicker;
+
+var dataFile = "data/data.csv"
+var dataFileAg = "data/dataAgriculture.csv"
+var dataFileBM = "data/dataBroadMoney.csv"
+var dataFileE = "data/dataExports.csv"
+var dataFileGdp = "data/dataGdpPerCapita.csv"
+var dataFileGC = "data/dataGovernmentConsumption.csv"
+var dataFileHC = "data/dataHouseholdConsumption.csv"
+var dataFileI = "data/dataImports.csv"
+var dataFileInd = "data/dataIndustry.csv"
+var dataFileM = "data/dataManufacturing.csv"
+var dataFileP = "data/dataPopulation.csv"
+var dataFileS = "data/dataServices.csv"
+
+var data1;
+var data2;
+var data3;
+var data4; 
+var data5;
+var data6;
+var data7;
+var data8;
+var data9;
+var data10;
+var data11;
+var data12;
+
+d3.csv(dataFile).then(function(data) {
+  data1 = data;
+});
+d3.csv(dataFileAg).then(function(data) {
+  data2 = data;
+});
+d3.csv(dataFileBM).then(function(data) {
+  data3 = data;
+});
+d3.csv(dataFileE).then(function(data) {
+  data4 = data;
+});
+d3.csv(dataFileGdp).then(function(data) {
+  data5 = data;
+});
+d3.csv(dataFileGC).then(function(data) {
+  data6 = data;
+});
+d3.csv(dataFileHC).then(function(data) {
+  data7 = data;
+});
+d3.csv(dataFileI).then(function(data) {
+  data8 = data;
+});
+d3.csv(dataFileInd).then(function(data) {
+  data9 = data;
+});
+d3.csv(dataFileM).then(function(data) {
+  data10 = data;
+});
+d3.csv(dataFileP).then(function(data) {
+  data11 = data;
+});
+d3.csv(dataFileS).then(function(data) {
+  data12 = data;
+});
+
+var div = d3.select("body").append("div") 
+    .attr("class", "tooltip")       
+    .style("opacity", 0);
+
+function trial(title,data,n)
+{
+const svg = d3.select("body").append("svg")
+   .attr("width", 1200)
+   .attr("height", 600)
+
+svg.append('text')
+   .attr('y', 25)
+   .html(title);
+
+svg.append("text")
+   .attr("y", 50)
+   .html( "(annual %)" );
+
+   data.forEach( d => {
+      d.color = d3.hsl(Math.random()*360,3/4,3/4);
+   });
+
+   let prevData = {};
+
+   let yearData = sliceData(data, year, prevData);
+   let tooltipSlice1 = _normalizeTooltip(data1,data2,data3,data4,data5,data6,data7,data8,data9,data10,data11,data12, year)
+
+
+   yearData.forEach((d,i) => d.ranking = i);
+
+   let x = d3.scaleLinear()
+      .domain([0, d3.max(yearData, d => d.value)])
+      .range([0, 1135]);
+
+   let y = d3.scaleLinear()
+      .domain([numCountries, 0])
+      .range([595, 80]);
+
+   let xAxis = d3.axisTop()
+      .scale(x)
+      .ticks(5)
+      .tickSize(-(515))
+      .tickFormat(d => d3.format(',')(d));
+
+   svg.append('g')
+      .attr('class', 'axis xAxis')
+      .attr('transform', `translate(0, 85)`)
+      .call(xAxis)
+      .selectAll('.tick line')
+      .classed('origin', d => d == 0);
+
+   svg.selectAll('rect.bar')
+      .data(yearData, d => d.name)
+      .enter()
+      .append('rect')
+      .attr('class', 'bar')
+      .attr('x', x(0)+1)
+      .attr('width', d => x(d.lastValue)-x(0))
+      .attr('y', d => y(d.ranking)+5)
+      .attr('height', y(1)-y(0)-5.15)
+      .style('fill', d => d.color)
+
+
+   svg.selectAll('text.label')
+      .data(yearData, d => d.name)
+      .enter()
+      .append('text')
+      .attr('x', d => x(d.lastValue)-8)
+      .attr('y', d => y(d.ranking)+5+((y(1)-y(0))/2)+1)
+      .style('text-anchor', 'end')
+      .html(d => d.name);
+
+   let displayYear = svg.append('text')
+      .attr('x', 1205)
+      .attr('y', 580)
+      .attr("style", "font-size: 40px;font-weight: 600;opacity: 0.4;")
+      .style('text-anchor', 'end')
+      .html(~~year);
+
+  year = yearBegin
+
+  d3.select("body").append("button").attr("style", "background-color: #4CAF50; border: none;  color: white;padding: 15px 32px;text-align: center;text-decoration: none;display: inline-block;font-size: 16px;")
+    .html("Stop")
+    .on("click", function() {
+      if(d3.select(this).text() == "Stop")
+      {
+        timerTicker.stop();
+        d3.select(this).text("Resume")
+      }
+      else
+      {
+        timerTicker.stop();
+        if (year >= yearStop)
+        {
+          year = yearBegin;
+        }
+        timerTicker = d3.interval(e => callBack(5.15, xAxis, svg, x,y,data, yearData, displayYear, prevData, n), delayTime);
+        d3.select(this).text("Stop")
+      }
+    });
+
+      timerTicker = d3.interval(e => callBack(5.15, xAxis, svg, x,y,data, yearData, displayYear, prevData, n), delayTime);
+}
+
+function sliceData(data, year, prevData){
+   const values = {};
+
+   const ret = [];
+   data.forEach( d => {
+      const name = d["Country Name"];
+      const lbl  = `${year} [YR${year}]`;
+      const txt  = d[lbl];
+      let val  = 0;
+      if( txt != '..')
+        val = parseFloat(txt);
+      
+      val = Math.round( val * 10.0) / 10.0; 
+
+      let lastValue = prevData[ name ];
+      if( lastValue == null )
+      {
+        lastValue = 0;
+      }
+
+      ret.push({
+          name     : name,
+          value    : val,
+          lastValue: lastValue,
+          color   : d.color
+      });
+      
+      values[name] = val;
+   });
+   
+   prevData = values;
+
+   return ret.sort((a,b) => b.value - a.value).slice(0, numCountries);
+}
+
+function _normalizeTooltip(data1,data2,data3,data4,data5,data6,data7,data8,data9,data10,data11,data12,year)
+{
+  var data = data1.map(function(e,i)
+  {
+    return [e,data2[i],data3[i],data4[i],data5[i],data6[i],data7[i],data8[i],data9[i],data10[i],data11[i],data12[i]]
+  })
+
+   const ret = [];
+   data.forEach( function(d,i){
+      const name = d[0]["Country Name"];
+      const lbl  = `${year} [YR${year}]`;
+      
+      const txt  = d[0][lbl];
+      let val  = 0;
+      if( txt != '..' &&
+          txt != '0')
+        val = parseFloat(txt);
+      const txt2  = d[1][lbl];
+      let val2  = 0;
+      if( txt2 != '..' &&
+          txt2 != '0')
+        val2 = parseFloat(txt2);
+      const txt3  = d[2][lbl];
+      let val3  = 0;
+      if( txt3 != '..' &&
+          txt3 != '0')
+        val3 = parseFloat(txt3);
+      const txt4  = d[3][lbl];
+      let val4  = 0;
+      if( txt4 != '..' &&
+          txt4 != '0')
+        val4 = parseFloat(txt4);
+      const txt5  = d[4][lbl];
+      let val5  = 0;
+      if( txt5 != '..' &&
+          txt5 != '0')
+        val5 = parseFloat(txt5);
+      const txt6  = d[5][lbl];
+      let val6  = 0;
+      if( txt6 != '..' &&
+          txt6 != '0')
+        val6 = parseFloat(txt6);
+      const txt7  = d[6][lbl];
+      let val7  = 0;
+      if( txt7 != '..' &&
+          txt7 != '0')
+        val7 = parseFloat(txt7);
+      const txt8  = d[7][lbl];
+      let val8  = 0;
+      if( txt8 != '..' &&
+          txt8 != '0')
+        val8 = parseFloat(txt8);
+      const txt9  = d[8][lbl];
+      let val9  = 0;
+      if( txt9 != '..' &&
+          txt9 != '0')
+        val9 = parseFloat(txt9);
+      const txt10  = d[9][lbl];
+      let val10  = 0;
+      if( txt10 != '..'&&
+          txt10 != '0')
+        val10 = parseFloat(txt10);
+      const txt11  = d[10][lbl];
+      let val11  = 0;
+      if( txt11 != '..'&&
+          txt11 != '0')
+        val11 = parseFloat(txt11);
+      const txt12  = d[11][lbl];
+      let val12  = 0;
+      if( txt12 != '..' &&
+          txt12 != '0')
+        val12 = parseFloat(txt12);
+
+      val = Math.round( val * 1e1) / 1e1; 
+      val2 = Math.round( val2 * 1e1) / 1e1; 
+      val3 = Math.round( val3 * 1e1) / 1e1; 
+      val4 = Math.round( val4 * 1e1) / 1e1; 
+      val5 = Math.round( val5 * 1e1) / 1e1; 
+      val6 = Math.round( val6 * 1e1) / 1e1; 
+      val7 = Math.round( val7 * 1e1) / 1e1; 
+      val8 = Math.round( val8 * 1e1) / 1e1; 
+      val9 = Math.round( val9 * 1e1) / 1e1; 
+      val10 = Math.round( val10 * 1e1) / 1e1; 
+      val11 = Math.round( val11 * 1e1) / 1e1; 
+      val12 = Math.round( val12 * 1e1) / 1e1; 
+
+      ret.push({
+          name     : name,
+          value    : val,
+          value2    : val2,
+          value3    : val3,
+          value4    : val4,
+          value5    : val5,
+          value6    : val6,
+          value7    : val7,
+          value8    : val8,
+          value9    : val9,
+          value10    : val10,
+          value11   : val11,
+          value12    : val12,
+      });
+      
+   });
+   
+   return ret;
+
+}
+
+function callBack(padBar, xAxis, svg, x,y,data, yearData, displayYear, prevData, n)
+{
+      yearData = sliceData(data, year, prevData);
+
+      x.domain([0, d3.max(yearData, d => d.value)]); 
+
+      yearData.forEach((d,i) => d.ranking = i);
+    
+      svg.select('.xAxis')
+         .transition()
+         .duration(tickTime)
+         .ease(d3.easeLinear)
+         .call(xAxis);
+    
+      svg.selectAll('.bar').data(yearData, d => d.name)
+         .enter()
+         .append('rect')
+         .attr('width', d => x(d.value)-x(0))
+         .attr('y', d => y(numCountries+1)+5)
+         .attr('height', y(1)-y(0)-padBar)
+         .attr('class', d => `bar ${d.name.replace(/\s/g,'_')}`)
+         .attr('x', x(0)+1)
+         .style('fill', d => d.color)
+         .transition()
+         .duration(tickTime)
+         .ease(d3.easeLinear)
+         .attr('y', d => y(d.ranking)+4)
+
+      svg.selectAll('.bar').data(yearData, d => d.name)
+         .transition()
+         .duration(tickTime)
+         .ease(d3.easeLinear)
+         .attr('y', d => y(d.ranking)+4)
+         .attr('width', d => Math.max(0, x(d.value)-x(0)))
+
+      svg.selectAll('.bar').data(yearData, d => d.name)
+         .exit()
+         .transition()
+         .duration(tickTime)
+         .ease(d3.easeLinear)
+          .attr('y', d => y(numCountries+1)+5)
+         .attr('width', d => Math.max(0, x(d.value)-x(0)))
+         .remove();
+
+   let tooltipSlice1 = _normalizeTooltip(data1,data2,data3,data4,data5,data6,data7,data8,data9,data10,data11,data12, year)
+
+   svg.selectAll('rect')
+      .data(tooltipSlice1, d => d.name)
+      .on("mouseover", function(d) {       
+          div .html("GDP annual growth %: "+d.value+"</br>"+"Agriculture annual growth %: "+d.value2+"</br>Broad Money annual growth %: "+d.value3+"</br>Exports annual growth %: "+d.value4+"</br>GDP Per Capita annual growth %: "+d.value5+"</br>Government Consumption annual growth %: "+d.value6+"</br>Household Consumption annual growth %: "+d.value7+"</br>Imports annual growth %: " + d.value8+"</br>Industry annual growth %: "+d.value9+"</br>Manufacturing annual growth %: "+d.value10+"</br>Population annual growth %: "+d.value11+"</br>Services annual growth %: "+d.value12).style("left", (d3.event.pageX) + "px")   
+              .style("top", (d3.event.pageY - 28) + "px")
+          div.transition()    
+              .duration(100)    
+              .style("opacity", .9); 
+          })          
+      .on("mouseout", function(d) {   
+          div.transition()    
+              .duration(100)    
+              .style("opacity", 0); 
+      });
+
+      const labels = svg.selectAll('.label')
+         .data(yearData, d => d.name);
+
+      labels
+         .enter()
+         .append('text')
+         .attr('class', 'label')
+         .attr('x', d => x(d.value)-8)
+         .attr('y', d => y(numCountries+1)+5+((y(1)-y(0))/2))
+         .style('text-anchor', 'end')
+         .html(d => d.name)    
+         .transition()
+         .duration(tickTime)
+         .ease(d3.easeLinear)
+         .attr('y', d => y(d.ranking)+5+((y(1)-y(0))/2)+1);
+
+
+      labels
+         .transition()
+         .duration(tickTime)
+         .ease(d3.easeLinear)
+         .attr('x', d => x(d.value)-8)
+         .attr('y', d => y(d.ranking)+5+((y(1)-y(0))/2)+1);
+
+      labels
+         .exit()
+         .transition()
+         .duration(tickTime)
+         .ease(d3.easeLinear)
+         .attr('x', d => x(d.value)-8)
+         .attr('y', d => y(numCountries+1)+5)
+         .remove();
+
+        svg.selectAll('.valueLabel').data(yearData, d => d.name)         .enter()
+         .append('text')
+         .attr('class', 'valueLabel')
+         .attr('x', d => x(d.value)+5)
+         .attr('y', d => y(numCountries+1)+5)
+         .text(d => d.value)
+         .transition()
+         .duration(tickTime)
+         .ease(d3.easeLinear)
+         .attr('y', d => y(d.ranking)+5+((y(1)-y(0))/2)+1);
+  
+
+        svg.selectAll('.valueLabel').data(yearData, d => d.name)         .transition()
+         .duration(tickTime)
+         .ease(d3.easeLinear)
+        .attr('y', d => y(d.ranking)+5+((y(1)-y(0))/2)+1)
+         .attr('x', d => x(d.value)+5)
+         .tween("text", function(d) {
+            const i = d3.interpolateNumber(d.lastValue, d.value);
+            return function(t) {
+               let v = i(t);
+               this.textContent = v.toFixed(1);
+            };
+         });
+
+        svg.selectAll('.valueLabel').data(yearData, d => d.name)
+         .exit()
+         .transition()
+         .duration(tickTime)
+         .ease(d3.easeLinear)
+         .attr('y', d => y(numCountries+1)+5)
+         .attr('x', d => x(d.value)+5)
+         .remove();
+
+      displayYear.html(~~year)
+
+      if(slideinformation(n, year))
+      {
+        d3.select("newDiv").append("text").lower().html("</br></br>Circa "+year.toString()+" "+slideinformation(n, year)).attr("style", "color:green;font-size:20px;transition: background-color 0.6s ease;")
+      }
+      if(year >= yearStop)
+      {
+        year = yearBegin;
+      } 
+      year=year+1;
+}
+
+function slideinformation(n, year)
+{
+  if(n==1)
+  {
+    if(year=='1970')
+    {
+      return "Oil is discovered in Abu Dhabi. UAE founded as a federation and Britain departs.";
+    }
+    else if(year=='1981')
+    {
+      return "Northern Mariana Islands becomes commonwealth of U.S., and later comes under U.S. sovereignty."
+    }
+    else if(year=="1985")
+    {
+      return "Tax exemption law reform on St. Martin (French part) allows for real estate boom."
+    }
+    else if(year=="1991")
+    {
+      return "Afghan Civil War occurs."
+    }
+    else if(year=="1997")
+    {
+      return "Liberia holds general election after First Liberian Civil War."
+    }
+    else if(year=="1998")
+    {
+      return "Rwanda begins recovering from Rwandan Civil War and genocides."
+    }
+    else if(year=="2002")
+    {
+      return "Turks and Caicos re-designated as British Overseas Territory."
+    }
+    else if(year=="2004")
+    {
+      return "Large amount of male laborers migrate to Qatar."
+    }
+    else if(year=="2015")
+    {
+      return "Nauru receives refugees."
+    }
+  }
+  else if(n==2)
+  {
+    if(year=='1970')
+    {
+      return "Saudi Arabia becomes the biggest oil producer in the world."
+    }
+    else if(year == "1972")
+    {
+      return "Algeria pursues industrialization within a state-controlled socialist economy."
+    }
+    else if(year == "1975")
+    {
+      return "Somalia recovers from a drought and establishes fishing cooperatives."
+    }
+    else if(year == "1976")
+    {
+      return "Offshore oil discovered near Gabon."
+    }
+    else if(year == "1978")
+    {
+      return "Cameroon becomes oil producing country."
+    }
+    else if(year == "1980")
+    {
+      return "Iraq produces 3.5 million barrels per day prior to Iran-Iraq war."
+    }
+    else if(year == "1981")
+    {
+      return "Cuba produces sugar for USSR."
+    }
+    else if(year == "1983")
+    {
+      return "Oman increases oil production."
+    }
+    else if(year == "1990")
+    {
+      return "Iraq recovers from Iran-Iraq war."
+    }
+    else if(year == "1991")
+    {
+      return "Lebanese government regains its control over country after civil war."
+    }
+    else if(year == "1995")
+    {
+      return "Rwanda recovers from civil war."
+    }
+    else if(year == "1996")
+    {
+      return "Bosnia recovers from Bosnian War."
+    }
+    else if(year == "1997")
+    {
+      return "Equatorial Guinea discovers oil reserves."
+    }
+    else if(year == "2002")
+    {
+      return "Sierra Leone benefits from government controlled diamond export program."
+    }
+    else if(year == "2004")
+    {
+      return "East Timor obtains independence and benefits from petroleum programs."
+    }
+    else if(year == "2007")
+    {
+      return "Azerbaijan gets involved in oil production."
+    }
+    else if(year == "2009")
+    {
+      return "Afghanistan benefits from copper deal with China."
+    }
+    else if(year == "2010")
+    {
+      return "Macao SAR benefits from Chinese tourism."
+    }
+    else if(year == "2012")
+    {
+      return "Libya recovers from civil war."
+    }
+    else if(year == "2015")
+    {
+      return "Ireland recovers from recession while Apple and other companies relocate to Ireland for tax benefits."
+    }
+  }
+  else if(n==3)
+  {
+    if(year=='1970')
+    {
+      return "Saudi Arabia becomes the biggest oil producer in the world."
+    }
+    else if(year == "1972")
+    {
+      return "Algeria pursues industrialization within a state-controlled socialist economy."
+    }
+    else if(year == "1975")
+    {
+      return "Somalia recovers from a drought and establishes fishing cooperatives."
+    }
+    else if(year == "1976")
+    {
+      return "Offshore oil discovered near Gabon."
+    }
+    else if(year == "1978")
+    {
+      return "Cameroon becomes oil producing country."
+    }
+    else if(year == "1980")
+    {
+      return "Iraq produces 3.5 million barrels per day prior to Iran-Iraq war."
+    }
+    else if(year == "1981")
+    {
+      return "Cuba produces sugar for USSR."
+    }
+    else if(year == "1983")
+    {
+      return "Oman increases oil production."
+    }
+    else if(year == "1990")
+    {
+      return "Iraq recovers from Iran-Iraq war."
+    }
+    else if(year == "1991")
+    {
+      return "Lebanese government regains its control over country after civil war."
+    }
+    else if(year == "1995")
+    {
+      return "Rwanda recovers from civil war."
+    }
+    else if(year == "1996")
+    {
+      return "Bosnia recovers from Bosnian War."
+    }
+    else if(year == "1997")
+    {
+      return "Equatorial Guinea discovers oil reserves."
+    }
+    else if(year == "2002")
+    {
+      return "Sierra Leone benefits from government controlled diamond export program."
+    }
+    else if(year == "2004")
+    {
+      return "East Timor obtains independence and benefits from petroleum programs."
+    }
+    else if(year == "2007")
+    {
+      return "Azerbaijan gets involved in oil production."
+    }
+    else if(year == "2009")
+    {
+      return "Afghanistan benefits from copper deal with China."
+    }
+    else if(year == "2010")
+    {
+      return "Macao SAR benefits from Chinese tourism."
+    }
+    else if(year == "2012")
+    {
+      return "Libya recovers from civil war."
+    }
+    else if(year == "2015")
+    {
+      return "Ireland recovers from recession while Apple and other companies relocate to Ireland for tax benefits."
+    }
+  }
+}
+
+var slideIndex = 1;
+showSlides(slideIndex);
+currentSlide(slideIndex);
+
+function currentSlide(n) {
+  showSlides(slideIndex = n);
+  d3.selectAll("svg").remove();
+  d3.selectAll("button").remove();
+  d3.selectAll("text").remove();
+  d3.selectAll("newDiv").remove();
+  if(!data1 || !data2 || !data3 || !data4 || 
+    !data5 || !data6 || !data7 || !data8 || 
+    !data9 || !data10 || !data11 || !data12)
+  {
+    return;
+  }
+  if(timerTicker)
+  {
+    timerTicker.stop()
+  }
+  if(n==1)
+  {
+    trial(`Top 20 Countries with Highest Population annual Growth (1970-2018)`, data11, n);
+    d3.select("body").append("text").html("</br>Slide 1. Population growth is the increase in the number of individuals in a population").attr("style", "color:green;font-size:30px;")
+  }
+  else if(n==2)
+  {
+    trial(`Top 20 Countries with Highest GDP annual Growth (1970-2018)`, data1, n);
+    d3.select("body").append("text").html("</br>Slide 2: GDP, short for Gross Domestic Product, is defined as the total market value of all final goods and services produced within a country in a given period. It includes private and public consumption, private and public investment, and exports less imports. GDP is the most commonly used measure of economic activity and serves as a good indicator to track the economic health of a country. Economic growth (GDP growth) refers to the percent change in real GDP, which corrects the nominal GDP figure for inflation. Real GDP is therefore also referred to as inflation-adjusted GDP or GDP in constant prices.").attr("style", "color:green;font-size:30px;")
+  }
+  else if(n==3)
+  {
+    trial(`Top 20 Countries with Highest GDP per Capita annual Growth (1970-2018)`, data5, n);
+    d3.select("body").append("text").html("</br>Slide 3: Per capita gross domestic product (GDP) is a metric that breaks down a country's economic output per person and is calculated by dividing the GDP of a country by its population.").attr("style", "color:green;font-size:30px;")
+  }
+  else if(n==4)
+  {
+    trial(`Top 20 Countries with Highest Agriculture,forestry,fishing Value annual Growth (1970-2018)`, data2, n);
+    d3.select("body").append("text").html("</br>Slide 4: Annual growth rate for agricultural value added. This includes forestry, hunting, and fishing, as well as cultivation of crops and livestock production.").attr("style", "color:green;font-size:30px;")
+  }
+  else if(n==5)
+  {
+    trial(`Top 20 Countries with Highest Services Value annual Growth (1970-2018)`, data12, n);
+    d3.select("body").append("text").html("</br>Slide 5: Annual growth rate for value added in services. This includes value added in wholesale and retail trade (including hotels and restaurants), transport, and government, financial, professional, and personal services such as education, health care, and real estate services. Also included are imputed bank service charges, import duties, and any statistical discrepancies noted by national compilers as well as discrepancies arising from rescaling.").attr("style", "color:green;font-size:30px;")
+  }
+  else if(n==6)
+  {
+    trial(`Top 20 Countries with Highest Manufacturing Value annual Growth (1970-2018)`, data10, n);
+    d3.select("body").append("text").html("</br>Slide 6: Annual growth rate for manufacturing value added.").attr("style", "color:green;font-size:30px;")
+  }
+  else if(n==7)
+  {
+    trial(`Top 20 Countries with Highest Industry Value annual Growth (1970-2018)`, data9, n);
+    d3.select("body").append("text").html("</br</br>>Slide 7: Annual growth rate for industrial value added. It comprises value added in mining, manufacturing (also reported as a separate subgroup), construction, electricity, water, and gas.").attr("style", "color:green;font-size:30px;")
+  }
+  else if(n==8)
+  {
+    trial(`Top 20 Countries with Highest Broad Money annual Growth (1970-2018)`, data3, n);
+    d3.select("body").append("text").html("</br>Slide 8: Broad money is the sum of currency outside banks; demand deposits other than those of the central government; the time, savings, and foreign currency deposits of resident sectors other than the central government; bank and traveler’s checks; and other securities such as certificates of deposit and commercial paper.").attr("style", "color:green;font-size:30px;")
+  }
+  else if(n==9)
+  {
+    trial(`Top 20 Countries with Highest Exports of Goods and Services annual Growth (1970-2018)`, data4, n);
+    d3.select("body").append("text").html("</br>Slide 9: Annual growth rate of exports of goods and services. Exports of goods and services represent the value of all goods and other market services provided to the rest of the world. They include the value of merchandise, freight, insurance, transport, travel, royalties, license fees, and other services, such as communication, construction, financial, information, business, personal, and government services.").attr("style", "color:green;font-size:30px;")
+  }
+  else if(n==10)
+  {
+    trial(`Top 20 Countries with Highest Imports of Goods and Services annual Growth (1970-2018)`, data8, n);
+    d3.select("body").append("text").html("</br>Slide 10: Annual growth rate of imports of goods and services. Imports of goods and services represent the value of all goods and other market services received from the rest of the world. They include the value of merchandise, freight, insurance, transport, travel, royalties, license fees, and other services, such as communication, construction, financial, information, business, personal, and government services.").attr("style", "color:green;font-size:30px;")
+  }
+  else if(n==11)
+  {
+    trial(`Top 20 Countries with Highest General Government Consumption annual Growth (1970-2018)`, data6, n);
+    d3.select("body").append("text").html("</br>Slide 11: Annual percentage growth of general government consumption expenditure. General government consumption expenditure includes all government current expenditures for purchases of goods and services, including compensation of employees. It also includes most expenditures on national defense and security, but excludes government military expenditures that are part of government capital formation.").attr("style", "color:green;font-size:30px;")
+  }
+  else if(n==12)
+  {
+    trial(`Top 20 Countries with Highest Household Consumption per Capita annual Growth (1970-2018)`, data7, n);
+    d3.select("body").append("text").html("</br>Slide 12: Household consumption expenditure is the market value of all goods and services, including durable products (such as cars, washing machines, and home computers), purchased by households. It excludes purchases of dwellings but includes imputed rent for owner-occupied dwellings. It also includes payments and fees to governments to obtain permits and licenses. Here, household consumption expenditure includes the expenditures of nonprofit institutions serving households, even when reported separately by the country.").attr("style", "color:green;font-size:30px;")
+  }
+  d3.select("body").append("newDiv")
+}
+
+function showSlides(n) {
+  var dots = document.getElementsByClassName("dot");
+  for (i = 0; i < dots.length; i++) {
+      dots[i].className = dots[i].className.replace(" active", "");
+  }
+  dots[slideIndex-1].className += " active";
+}
+
+</script>
+</div>
+</body>
